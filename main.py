@@ -1,6 +1,6 @@
 import streamlit as st
 from pytube import YouTube
-from tkinter.filedialog import askdirectory
+
 col1,col2=st.columns(2)
 
 reso_list=["360p",'720p','1080p']
@@ -25,8 +25,8 @@ format=col2.selectbox("File type",format_list)
 if col2.button("Download") :
     try:
         video=YouTube(link).streams.filter(res=req_reso,file_extension = format).first()
-        path = askdirectory()
-        video.download(path)
+        
+        video.download()
     except:
         st.error("Poor connection.Try again later")
      
