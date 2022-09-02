@@ -26,7 +26,7 @@ if col2.button("Download") :
     try:
         video=YouTube(link).streams.filter(res=req_reso,file_extension = format).first()
         
-        video.download("C:\YouTube Video Downloads")
+        video.download(""C:\Users\minul\Videos"")
     except:
         st.error("Poor connection.Try again later")
      
