@@ -1,33 +1,56 @@
+import tempfile
+
 import streamlit as st
-from pytube import YouTube
+from pytubefix import YouTube
 
-col1,col2=st.columns(2)
+RESOLUTIONS = ["360p", "720p", "1080p"]
+FILE_TYPES = ["mp4"]
 
-reso_list=["360p",'720p','1080p']
-format_list=["mp4"]
+st.header("YouTube Video Downloader")
 
-st.header("Youtube Video Downloader")
-col1,col2=st.columns(2)
+col1, col2 = st.columns(2)
 
-link=col1.text_input("Link")
+link = col1.text_input("Link")
 
 if col1.button("Find"):
-    try:
-        video=st.video(link)
-    except:   
-    
-        st.error("Can't find such a video.Resons might be poor internet connection , no such video with given resolution and file type or entering an incorrect link ")
-    
+    if not link:
+        st.error("Please enter a YouTube link.")
+    else:
+        try:
+            st.video(link)
+        except Exception as exc:
+            st.error(f"Can't find such a video. {exc}")
 
-req_reso=col2.selectbox("Resolution",reso_list)
-format=col2.selectbox("File type",format_list)
+resolution = col2.selectbox("Resolution", RESOLUTIONS)
+file_type = col2.selectbox("File type", FILE_TYPES)
 
-if col2.button("Download") :
-    try:
-        video=YouTube(link).streams.filter(res=req_reso,file_extension = format).first()
-        
-        video.download("C:/Users/minul/Videos")
-    except:
-        st.error("Poor connection.Try again later")
-     
-     
+if col2.button("Download"):
+    if not link:
+        st.error("Please enter a YouTube link.")
+    else:
+        try:
+            with st.spinner("Fetching video..."):
+                yt = YouTube(link)
+                stream = yt.streams.filter(
+                    res=resolution, file_extension=file_type
+                ).first()
+
+            if stream is None:
+                st.error(
+                    f"No stream found for resolution {resolution} "
+                    f"and file type {file_type}."
+                )
+            else:
+                with tempfile.TemporaryDirectory() as tmp_dir:
+                    with st.spinner("Downloading..."):
+                        file_path = stream.download(output_path=tmp_dir)
+                    with open(file_path, "rb") as f:
+                        st.success("Download ready!")
+                        st.download_button(
+                            label="Save video",
+                            data=f,
+                            file_name=f"{yt.title}.{file_type}",
+                            mime="video/mp4",
+                        )
+        except Exception as exc:
+            st.error(f"Download failed: {exc}")
